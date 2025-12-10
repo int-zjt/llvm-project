@@ -785,7 +785,7 @@ void llvm::CloneAndPruneIntoFromInst(Function *NewFunc, const Function *OldFunc,
          ++phino) {
       OPN = PHIToResolve[phino];
       PHINode *PN = cast<PHINode>(VMap[OPN]);
-      for (unsigned pred = 0, e = NumPreds; pred != e; ++pred) {
+      for (int pred = (int)NumPreds-1; pred >=0; --pred) {
         Value *V = VMap.lookup(PN->getIncomingBlock(pred));
         if (BasicBlock *MappedBlock = cast_or_null<BasicBlock>(V)) {
           Value *InVal =
@@ -794,11 +794,9 @@ void llvm::CloneAndPruneIntoFromInst(Function *NewFunc, const Function *OldFunc,
           assert(InVal && "Unknown input value?");
           PN->setIncomingValue(pred, InVal);
           PN->setIncomingBlock(pred, MappedBlock);
-        } else {
-          PN->removeIncomingValue(pred, false);
-          --pred; // Revisit the next entry.
-          --e;
+          continue;
         }
+        PN->removeIncomingValue(pred, false);
       }
     }
 
